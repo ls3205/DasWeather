@@ -19,6 +19,7 @@
   "homepage": "https://github.com/ls3205/DasWeather#readme",
   "dependencies": {
     "@cicciosgamino/openweather-apis": "^5.2.0",
+    "bluebird": "^3.7.2",
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",

@@ -30,9 +30,9 @@ client.on('messageCreate', async (message) => {
     if (content.startsWith(`${prefix}temp`)) {
         await commands.now(message, args);
     }
-    // if (content.startsWith(`${prefix}hourly`)) {
-    //     await commands.hourly(message, args);
-    // }
+    if (content.startsWith(`${prefix}hourly`)) {
+        await commands.hourly(message, args);
+    }
 });
 
 // server.keepAlive();
