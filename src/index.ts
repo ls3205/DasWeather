@@ -28,8 +28,11 @@ client.on('messageCreate', async (message) => {
     const args = content.substring(content.indexOf(' ') + 1);
 
     if (content.startsWith(`${prefix}temp`)) {
-        commands.now(message, args);
+        await commands.now(message, args);
     }
+    // if (content.startsWith(`${prefix}hourly`)) {
+    //     await commands.hourly(message, args);
+    // }
 });
 
 // server.keepAlive();
