@@ -2,6 +2,8 @@ import { client, apiKey } from './index'
 import DiscordJS from "discord.js";
 import urllib from 'urllib';
 
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 function kelToFahr(kel) {
     return Math.round(((kel - 273.15) * (9 / 5) + 32) * 100) / 100;
 };
@@ -112,7 +114,7 @@ export async function hourly(message, zipcode) {
             const hourly = responseJSON.hourly;
             for (let i = 1; i < 7; i++) {
                 const time = new Date((hourly[i].dt) * 1000);
-                const timeString = time.toLocaleTimeString();
+                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
                 const temp = kelToFahr(hourly[i].temp);
                 const feelsLike = kelToFahr(hourly[i].feels_like);
                 const weather = hourly[i].weather[0].main;
@@ -126,7 +128,7 @@ export async function hourly(message, zipcode) {
             }
             for (let i = 7; i < 13; i++) {
                 const time = new Date((hourly[i].dt) * 1000);
-                const timeString = time.toLocaleTimeString();
+                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
                 const temp = kelToFahr(hourly[i].temp);
                 const feelsLike = kelToFahr(hourly[i].feels_like);
                 const weather = hourly[i].weather[0].main;
@@ -140,7 +142,7 @@ export async function hourly(message, zipcode) {
             }
             for (let i = 13; i < 19; i++) {
                 const time = new Date((hourly[i].dt) * 1000);
-                const timeString = time.toLocaleTimeString();
+                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
                 const temp = kelToFahr(hourly[i].temp);
                 const feelsLike = kelToFahr(hourly[i].feels_like);
                 const weather = hourly[i].weather[0].main;
@@ -154,7 +156,7 @@ export async function hourly(message, zipcode) {
             }
             for (let i = 19; i < 25; i++) {
                 const time = new Date((hourly[i].dt) * 1000);
-                const timeString = time.toLocaleTimeString();
+                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
                 const temp = kelToFahr(hourly[i].temp);
                 const feelsLike = kelToFahr(hourly[i].feels_like);
                 const weather = hourly[i].weather[0].main;
