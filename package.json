@@ -1,0 +1,27 @@
+{
+  "name": "dasweather",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ls3205/DasWeather.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ls3205/DasWeather/issues"
+  },
+  "homepage": "https://github.com/ls3205/DasWeather#readme",
+  "dependencies": {
+    "@cicciosgamino/openweather-apis": "^5.2.0",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "urllib": "^2.38.0"
+  }
+}
