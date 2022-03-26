@@ -70,8 +70,6 @@ export async function hourly(message, zipcode) {
         }).catch(err => {
             console.log(err);
         }).then(responseJSON => {
-            const offset = responseJSON.timezone_offset;
-
             const current = responseJSON.current;
             const currentTemp = kelToFahr(current.temp);
             const currentFeelsLike = kelToFahr(current.feels_like);
@@ -112,67 +110,28 @@ export async function hourly(message, zipcode) {
                 .setFooter('Page 4 of 4');
 
             const hourly = responseJSON.hourly;
-            for (let i = 1; i < 7; i++) {
-                const time = new Date((hourly[i].dt) * 1000);
-                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
-                const temp = kelToFahr(hourly[i].temp);
-                const feelsLike = kelToFahr(hourly[i].feels_like);
-                const weather = hourly[i].weather[0].main;
-                const description = hourly[i].weather[0].description;
-
-                embed.addFields(
-                    { name: `Time`, value: `${timeString}`, inline: true },
-                    { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
-                    { name: 'Weather', value: `${weather} (${description})`, inline: true },
-                )
-            }
-            for (let i = 7; i < 13; i++) {
-                const time = new Date((hourly[i].dt) * 1000);
-                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
-                const temp = kelToFahr(hourly[i].temp);
-                const feelsLike = kelToFahr(hourly[i].feels_like);
-                const weather = hourly[i].weather[0].main;
-                const description = hourly[i].weather[0].description;
-
-                embed2.addFields(
-                    { name: `Time`, value: `${timeString}`, inline: true },
-                    { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
-                    { name: 'Weather', value: `${weather} (${description})`, inline: true },
-                )
-            }
-            for (let i = 13; i < 19; i++) {
-                const time = new Date((hourly[i].dt) * 1000);
-                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
-                const temp = kelToFahr(hourly[i].temp);
-                const feelsLike = kelToFahr(hourly[i].feels_like);
-                const weather = hourly[i].weather[0].main;
-                const description = hourly[i].weather[0].description;
-
-                embed3.addFields(
-                    { name: `Time`, value: `${timeString}`, inline: true },
-                    { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
-                    { name: 'Weather', value: `${weather} (${description})`, inline: true },
-                )
-            }
-            for (let i = 19; i < 25; i++) {
-                const time = new Date((hourly[i].dt) * 1000);
-                const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
-                const temp = kelToFahr(hourly[i].temp);
-                const feelsLike = kelToFahr(hourly[i].feels_like);
-                const weather = hourly[i].weather[0].main;
-                const description = hourly[i].weather[0].description;
-
-                embed4.addFields(
-                    { name: `Time`, value: `${timeString}`, inline: true },
-                    { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
-                    { name: 'Weather', value: `${weather} (${description})`, inline: true },
-                )
-            }
 
             const pages = [embed, embed2, embed3, embed4];
             var page = 0;
 
-            message.channel.send({embeds: [pages[page]]}).then(hourlyEmbeded => {
+            for (let j = 0; j < pages.length; j++) {
+                for (let i = (j*6)+1; i < (j*6+1)+7; i++) {
+                    const time = new Date((hourly[i].dt) * 1000);
+                    const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
+                    const temp = kelToFahr(hourly[i].temp);
+                    const feelsLike = kelToFahr(hourly[i].feels_like);
+                    const weather = hourly[i].weather[0].main;
+                    const description = hourly[i].weather[0].description;
+
+                    pages[j].addFields(
+                        { name: `Time`, value: `${timeString}`, inline: true },
+                        { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
+                        { name: 'Weather', value: `${weather} (${description})`, inline: true },
+                    )
+                }
+            }
+
+            message.channel.send({ embeds: [pages[page]] }).then(hourlyEmbeded => {
                 hourlyEmbeded.react('⏪');
                 hourlyEmbeded.react('⏩');
 
@@ -185,7 +144,7 @@ export async function hourly(message, zipcode) {
                     } else if (reaction.emoji.name === '⏩') {
                         page = (page === pages.length - 1) ? 0 : page + 1;
                     }
-                    await hourlyEmbeded.edit({embeds: [pages[page]]});
+                    await hourlyEmbeded.edit({ embeds: [pages[page]] });
                     if (user.id !== client.user?.id) {
                         reaction.users.remove(user);
                     }
