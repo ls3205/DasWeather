@@ -8,6 +8,16 @@ function kelToFahr(kel) {
     return Math.round(((kel - 273.15) * (9 / 5) + 32) * 100) / 100;
 };
 
+function unixToReadable(unix) {
+    const date = new Date(unix * 1000);
+    const dateString = `${date.toLocaleTimeString().split(':', 2).join(':')} ${date.toLocaleTimeString().substring(date.toLocaleTimeString().indexOf(' ') + 1)}`;
+    return dateString;
+}
+
+function qnhToinhg(qnh) {
+    return Math.round((qnh * 0.02953) * 100) / 100;
+}
+
 export async function now(message, zipcode) {
     console.log(`Using NOW function (zipcode: ${zipcode}). (${message.author.username})`);
     const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode},us&appid=${apiKey}`;
@@ -50,7 +60,6 @@ export async function hourly(message, zipcode) {
     console.log(`Using HOURLY function (zipcode: ${zipcode}). (${message.author.username})`);
 
     const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode},us&appid=${apiKey}`;
-    var city;
 
     urllib.request(url).then(data => {
         const response = data.data;
@@ -61,7 +70,7 @@ export async function hourly(message, zipcode) {
     }).then(responseJSON => {
         const lat = responseJSON.coord.lat;
         const lon = responseJSON.coord.lon;
-        city = responseJSON.name;
+        const city = responseJSON.name;
         const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,daily,alerts&appid=${apiKey}`;
         urllib.request(url).then(data => {
             const response = data.data;
@@ -115,9 +124,9 @@ export async function hourly(message, zipcode) {
             var page = 0;
 
             for (let j = 0; j < pages.length; j++) {
-                for (let i = (j*6)+1; i < (j*6+1)+7; i++) {
+                for (let i = (j * 6) + 1; i < (j * 6 + 1) + 7; i++) {
                     const time = new Date((hourly[i].dt) * 1000);
-                    const timeString = `${days[time.getDay()]} ${time.toLocaleTimeString().split(':', 2).join(':')} ${time.toLocaleTimeString().substring(time.toLocaleTimeString().indexOf(' ') + 1)}`;
+                    const timeString = `${days[time.getDay()]} ${unixToReadable(hourly[i].dt)}`;
                     const temp = kelToFahr(hourly[i].temp);
                     const feelsLike = kelToFahr(hourly[i].feels_like);
                     const weather = hourly[i].weather[0].main;
@@ -139,15 +148,236 @@ export async function hourly(message, zipcode) {
                 const collector = hourlyEmbeded.createReactionCollector(filter);
 
                 collector.on('collect', async (reaction, user) => {
-                    if (reaction.emoji.name === '⏪') {
-                        page = (page === 0) ? pages.length - 1 : page - 1;
-                    } else if (reaction.emoji.name === '⏩') {
-                        page = (page === pages.length - 1) ? 0 : page + 1;
-                    }
-                    await hourlyEmbeded.edit({ embeds: [pages[page]] });
                     if (user.id !== client.user?.id) {
+                        if (reaction.emoji.name === '⏪') {
+                            page = (page === 0) ? pages.length - 1 : page - 1;
+                        } else if (reaction.emoji.name === '⏩') {
+                            page = (page === pages.length - 1) ? 0 : page + 1;
+                        }
+                        await hourlyEmbeded.edit({ embeds: [pages[page]] });
                         reaction.users.remove(user);
                     }
+                });
+            });
+        });
+    });
+};
+
+export async function today(message, zipcode) {
+    console.log(`Using TODAY function (zipcode: ${zipcode}).`);
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode},us&appid=${apiKey}`;
+
+    urllib.request(url).then(data => {
+        const response = data.data;
+        const responseJSON = JSON.parse(response.toString());
+        return responseJSON;
+    }).catch(err => {
+        console.log(err);
+    }).then(responseJSON => {
+        const city = responseJSON.name;
+
+        const lat = responseJSON.coord.lat;
+        const lon = responseJSON.coord.lon;
+
+        const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely&appid=${apiKey}`;
+
+        urllib.request(url).then(data => {
+            const response = data.data;
+            const responseJSON = JSON.parse(response.toString());
+            return responseJSON;
+        }).catch(err => {
+            console.log(err);
+        }).then(responseJSON => {
+
+            const hourlyFuture = responseJSON.hourly;
+
+            const current = responseJSON.current;
+            const currentTemp = kelToFahr(current.temp);
+
+            const today = responseJSON.daily[0];
+            const highTemp = kelToFahr(today.temp.max);
+            const lowTemp = kelToFahr(today.temp.min);
+            const weather = today.weather[0].main;
+            const description = today.weather[0].description;
+            const sunrise = unixToReadable(today.sunrise);
+            const sunset = unixToReadable(today.sunset);
+            const windSpeed = today.wind_speed;
+            const windGust = today.wind_gust;
+            const windDirection = today.wind_deg;
+            const humidity = today.humidity;
+            const pressure = qnhToinhg(today.pressure);
+            const dewpoint = kelToFahr(today.dew_point);
+            const uvIndex = Math.round(today.uvi);
+
+            const embed = new DiscordJS.MessageEmbed()
+                .setColor('#03adfc')
+                .setTitle(`Weather Today`)
+                .setDescription(`Weather in [${city}](https://www.google.com/maps/place/${lat},${lon}):`)
+                .addFields(
+                    { name: 'Temperature', value: `${currentTemp}°F (${highTemp}°F/${lowTemp}°F)`, inline: true },
+                    { name: 'Weather', value: `${weather} (${description})`, inline: true },
+                    { name: 'Humidity', value: `${humidity}%`, inline: true },
+                    { name: 'Wind', value: `${windSpeed} mph/Gust ${windGust} mph (${windDirection}°)`, inline: true },
+                    { name: 'Sunrise', value: `${sunrise}`, inline: true },
+                    { name: 'Sunset', value: `${sunset}`, inline: true },
+                    { name: 'UV Index', value: `${uvIndex}`, inline: true },
+                    { name: 'Pressure', value: `${pressure} inHg`, inline: true },
+                    { name: 'Dewpoint', value: `${dewpoint}°F`, inline: true },
+                )
+                .setAuthor({ name: `OpenWeatherMap`, iconURL: 'https://openweathermap.org/img/wn/' + today.weather[0].icon + '@2x.png' })
+                .setFooter('Page 1 of 5');
+
+            const time = new Date();
+            time.setHours(0);
+            time.setMinutes(0);
+            time.setSeconds(0);
+            time.setMilliseconds(0);
+            const timeMilis = time.getTime();
+            const unix = (timeMilis / 1000);
+
+            const url = `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${lat}&lon=${lon}&dt=${unix}&appid=${apiKey}`;
+            urllib.request(url).then(data => {
+                const response = data.data;
+                const responseJSON = JSON.parse(response.toString());
+                return responseJSON;
+            }).catch(err => {
+                console.log(err);
+            }).then(responseJSON => {
+                const hourlyPast = responseJSON.hourly;
+                var hourly = [];
+                var pointerPast = 0;
+                var pointerFuture = 0;
+                var pointerEndFuture = 0;
+                const endUnix = unix + 86400;
+
+                for (let i = 0; i < hourlyPast.length; i++) {
+                    if (hourlyPast[i].dt === unix) {
+                        pointerPast = i;
+                        break;
+                    }
+                }
+                for (let j = 0; j < hourlyFuture.length; j++) {
+                    if (hourlyFuture[j].dt === hourlyPast[pointerPast].dt) {
+                        pointerFuture = j;
+                    }
+                    if (hourlyFuture[j].dt === endUnix) {
+                        pointerEndFuture = j;
+                    }
+                }
+                for (let i = pointerPast; i < hourlyPast.length; i++) {
+                    // @ts-ignore
+                    hourly.push(hourlyPast[i]);
+                }
+                for (let i = pointerFuture; i < pointerEndFuture; i++) {
+                    // @ts-ignore
+                    hourly.push(hourlyFuture[i]);
+                }
+
+                const embed2 = new DiscordJS.MessageEmbed()
+                    .setColor('#03adfc')
+                    .setTitle(`Hourly Weather`)
+                    .setDescription(`Weather in [${city}](https://www.google.com/maps/place/${lat},${lon}):`)
+                    .setAuthor({ name: `OpenWeatherMap`, iconURL: 'https://openweathermap.org/img/wn/' + today.weather[0].icon + '@2x.png' })
+                    .setFooter('Page 2 of 5');
+
+                const embed3 = new DiscordJS.MessageEmbed()
+                    .setColor('#03adfc')
+                    .setTitle(`Hourly Weather`)
+                    .setDescription(`Weather in [${city}](https://www.google.com/maps/place/${lat},${lon}):`)
+                    .setAuthor({ name: `OpenWeatherMap`, iconURL: 'https://openweathermap.org/img/wn/' + today.weather[0].icon + '@2x.png' })
+                    .setFooter('Page 3 of 5');
+
+                const embed4 = new DiscordJS.MessageEmbed()
+                    .setColor('#03adfc')
+                    .setTitle(`Hourly Weather`)
+                    .setDescription(`Weather in [${city}](https://www.google.com/maps/place/${lat},${lon}):`)
+                    .setAuthor({ name: `OpenWeatherMap`, iconURL: 'https://openweathermap.org/img/wn/' + today.weather[0].icon + '@2x.png' })
+                    .setFooter('Page 4 of 5');
+
+                const embed5 = new DiscordJS.MessageEmbed()
+                    .setColor('#03adfc')
+                    .setTitle(`Hourly Weather`)
+                    .setDescription(`Weather in [${city}](https://www.google.com/maps/place/${lat},${lon}):`)
+                    .setAuthor({ name: `OpenWeatherMap`, iconURL: 'https://openweathermap.org/img/wn/' + today.weather[0].icon + '@2x.png' })
+                    .setFooter('Page 5 of 5');
+
+
+                const pages = [embed, embed2, embed3, embed4, embed5];
+                var page = 0;
+
+                for (let i = 0; i < 6; i++) {
+                    // @ts-ignore
+                    const timeString = `${unixToReadable(hourly[i].dt)}`;
+                    const temp = kelToFahr(hourly[i].temp);
+                    const feelsLike = kelToFahr(hourly[i].feels_like);
+                    const weather = hourly[i].weather[0].main;
+                    const description = hourly[i].weather[0].description;
+
+                    pages[1].addFields(
+                        { name: `Time`, value: `${timeString}`, inline: true },
+                        { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
+                        { name: 'Weather', value: `${weather} (${description})`, inline: true },
+                    )
+                }
+                for (let i = 6; i < 12; i++) {
+                    const timeString = `${unixToReadable(hourly[i].dt)}`;
+                    const temp = kelToFahr(hourly[i].temp);
+                    const feelsLike = kelToFahr(hourly[i].feels_like);
+                    const weather = hourly[i].weather[0].main;
+                    const description = hourly[i].weather[0].description;
+
+                    pages[2].addFields(
+                        { name: `Time`, value: `${timeString}`, inline: true },
+                        { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
+                        { name: 'Weather', value: `${weather} (${description})`, inline: true },
+                    )
+                }
+                for (let i = 12; i < 18; i++) {
+                    const timeString = `${unixToReadable(hourly[i].dt)}`;
+                    const temp = kelToFahr(hourly[i].temp);
+                    const feelsLike = kelToFahr(hourly[i].feels_like);
+                    const weather = hourly[i].weather[0].main;
+                    const description = hourly[i].weather[0].description;
+
+                    pages[3].addFields(
+                        { name: `Time`, value: `${timeString}`, inline: true },
+                        { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
+                        { name: 'Weather', value: `${weather} (${description})`, inline: true },
+                    )
+                }
+                for (let i = 18; i < 24; i++) {
+                    const timeString = `${unixToReadable(hourly[i].dt)}`;
+                    const temp = kelToFahr(hourly[i].temp);
+                    const feelsLike = kelToFahr(hourly[i].feels_like);
+                    const weather = hourly[i].weather[0].main;
+                    const description = hourly[i].weather[0].description;
+
+                    pages[4].addFields(
+                        { name: `Time`, value: `${timeString}`, inline: true },
+                        { name: `Temperature`, value: `${temp}°F (Feels like: ${feelsLike}°F)`, inline: true },
+                        { name: 'Weather', value: `${weather} (${description})`, inline: true },
+                    )
+                }
+
+                message.channel.send({ embeds: [pages[page]] }).then(hourlyEmbeded => {
+                    hourlyEmbeded.react('⏪');
+                    hourlyEmbeded.react('⏩');
+
+                    const filter = (reaction, user) => ['⏪', '⏩'].includes(reaction.emoji.name) && (user.id === message.author.id);
+                    const collector = hourlyEmbeded.createReactionCollector(filter);
+
+                    collector.on('collect', async (reaction, user) => {
+                        if (user.id !== client.user?.id) {
+                            if (reaction.emoji.name === '⏪') {
+                                page = (page === 0) ? pages.length - 1 : page - 1;
+                            } else if (reaction.emoji.name === '⏩') {
+                                page = (page === pages.length - 1) ? 0 : page + 1;
+                            }
+                            await hourlyEmbeded.edit({ embeds: [pages[page]] });
+                            reaction.users.remove(user);
+                        }
+                    });
                 });
             });
         });
