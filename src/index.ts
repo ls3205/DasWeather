@@ -36,6 +36,9 @@ client.on('messageCreate', async (message) => {
     if (content.startsWith(`${prefix}today`)) {
         await commands.today(message, args);
     }
+    if (content.startsWith(`${prefix}tomorrow`)) {
+        await commands.tomorrow(message, args);
+    }
 });
 
 // server.keepAlive();
