@@ -126,7 +126,7 @@ export async function hourly(message, zipcode) {
             var page = 0;
 
             for (let j = 0; j < pages.length; j++) {
-                for (let i = (j * 6) + 1; i < (j * 6 + 1) + 7; i++) {
+                for (let i = (j * 6) + 1; i < (j * 6) + 7; i++) {
                     const time = new Date((hourly[i].dt) * 1000);
                     const timeString = `${days[time.getDay()]} ${unixToReadable(hourly[i].dt)}`;
                     const temp = kelToFahr(hourly[i].temp);
@@ -351,7 +351,7 @@ export async function today(message, zipcode) {
                         { name: 'Weather', value: `${weather} (${description})`, inline: true },
                     )
                 }
-                for (let i = 18; i < 24; i++) {
+                for (let i = 18; i < 25; i++) {
                     const timeString = `${unixToReadable(hourly[i].dt)}`;
                     const temp = kelToFahr(hourly[i].temp);
                     const feelsLike = kelToFahr(hourly[i].feels_like);
