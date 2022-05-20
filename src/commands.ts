@@ -165,7 +165,7 @@ export async function hourly(message, zipcode) {
     });
 };
 
-export async function today(message, zipcode) {
+export async function today(message, zipcode, channel=message.channel) {
     console.log(`Using TODAY function (zipcode: ${zipcode}).`);
 
     const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode},us&appid=${apiKey}`;
@@ -365,7 +365,7 @@ export async function today(message, zipcode) {
                     )
                 }
 
-                message.channel.send({ embeds: [pages[page]] }).then(hourlyEmbeded => {
+                channel.send({ embeds: [pages[page]] }).then(hourlyEmbeded => {
                     hourlyEmbeded.react('⏪');
                     hourlyEmbeded.react('⏩');
 
@@ -573,4 +573,14 @@ export async function tomorrow(message, zipcode) {
             });
         });
     })
+}
+
+export async function dailyReminder(message, zipcode) {
+    setInterval(async () => {
+        var date = new Date();
+        console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
+        if (date.getHours() === 14 && date.getMinutes() === 47) {
+            await today(message, zipcode, message.channel);
+        }
+    }, 60000);
 }
