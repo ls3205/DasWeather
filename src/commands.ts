@@ -578,8 +578,7 @@ export async function tomorrow(message, zipcode) {
 export async function dailyReminder(message, zipcode) {
     setInterval(async () => {
         var date = new Date();
-        console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
-        if (date.getHours() === 14 && date.getMinutes() === 47) {
+        if (date.getHours() === 8 && date.getMinutes() === 0) {
             await today(message, zipcode, message.channel);
         }
     }, 60000);
