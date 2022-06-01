@@ -576,10 +576,21 @@ export async function tomorrow(message, zipcode) {
 }
 
 export async function dailyReminder(message, zipcode) {
-    setInterval(async () => {
+    var itDoBeTheTurnOfTheHour = false;
+    var doItBeTheTurnOfTheHour = setInterval(async () => {
         var date = new Date();
-        if (date.getHours() === 8 && date.getMinutes() === 0) {
-            await today(message, zipcode, message.channel);
+        if (date.getMinutes() === 0) {
+            itDoBeTheTurnOfTheHour = true;
+            clearInterval(doItBeTheTurnOfTheHour);
         }
     }, 60000);
+
+    if (itDoBeTheTurnOfTheHour) {
+        var dailyWeatherInterval = setInterval(async () => {
+            var date = new Date();
+            if (date.getHours() === 8 && date.getMinutes() === 0) {
+                await today(message, zipcode, message.channel);
+            }
+        }, 86400000);
+    }
 }
