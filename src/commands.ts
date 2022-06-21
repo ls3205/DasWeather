@@ -165,7 +165,7 @@ export async function hourly(message, zipcode) {
     });
 };
 
-export async function today(message, zipcode, channel=message.channel) {
+export async function today(message, zipcode, channel = message.channel) {
     console.log(`Using TODAY function (zipcode: ${zipcode}).`);
 
     const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipcode},us&appid=${apiKey}`;
@@ -576,21 +576,32 @@ export async function tomorrow(message, zipcode) {
 }
 
 export async function dailyReminder(message, zipcode) {
-    var itDoBeTheTurnOfTheHour = false;
-    var doItBeTheTurnOfTheHour = setInterval(async () => {
+    console.log(`Using DAILY REMINDER function (zipcode: ${zipcode}).`);
+
+    function convertTZ(date, tzString) {
+        return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
+    }
+
+    var turnOfTheHourCheck = setInterval(async () => {
         var date = new Date();
+        date = convertTZ(date, "America/New_York");
         if (date.getMinutes() === 0) {
-            itDoBeTheTurnOfTheHour = true;
-            clearInterval(doItBeTheTurnOfTheHour);
+            console.log(`|DAILY REMINDER| Turn of the hour detected.`);
+            clearInterval(turnOfTheHourCheck);
+
+            var eightAMCheck = setInterval(async () => {
+                var date = new Date();
+                date = convertTZ(date, "America/New_York");
+                if (date.getHours() === 8) {
+                    console.log(`|DAILY REMINDER| 8AM detected.`);
+                    clearInterval(eightAMCheck);
+
+                    var dailyWeatherInterval = setInterval(async () => {
+                            console.log(`|DAILY REMINDER| 8 AM Detected.`);
+                            await today(message, zipcode, message.channel);
+                    }, 86400000);
+                }
+            }, 3600000);
         }
     }, 60000);
-
-    if (itDoBeTheTurnOfTheHour) {
-        var dailyWeatherInterval = setInterval(async () => {
-            var date = new Date();
-            if (date.getHours() === 8 && date.getMinutes() === 0) {
-                await today(message, zipcode, message.channel);
-            }
-        }, 86400000);
-    }
 }
