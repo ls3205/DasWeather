@@ -44,5 +44,5 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// server.keepAlive();
+server.keepAlive();
 client.login(String(token));
